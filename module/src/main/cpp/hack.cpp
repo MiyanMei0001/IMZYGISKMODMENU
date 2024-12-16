@@ -160,7 +160,7 @@ void hack_start(const char *_game_data_dir) {
 
     // TODO: hooking/patching here
 	
-	DobbyHook(getAbsAddress(0x41E76C4),(void *, Vector3) SetPosition,(void **, Vector3)&oldSetPosition);
+DobbyHook(getAbsAddress(0x41E76C4), (void *)SetPosition, (void **)&oldSetPosition);
 	
 	
 	
