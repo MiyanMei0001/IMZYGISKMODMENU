@@ -33,6 +33,8 @@ void *getAbsAddress(uintptr_t offset) {
     return reinterpret_cast<void*>(base + offset);
 }
 
+bool teleport;
+
 struct Vector3 {
     float x, y, z;
 };
@@ -129,7 +131,7 @@ if (ImGui::Begin("Ｍｉｙａｎ", nullptr)) {
     if (ImGui::BeginTabBar("Ｍｉｙａｎ", ImGuiTabBarFlags_None)) {
         if (ImGui::BeginTabItem("Teleport Menu")) {	
             
-            ImGui::Checkbox("Teleport", &upTele);
+            ImGui::Checkbox("Teleport", &teleport);
 
             ImGui::InputFloat("X Coordinate", &Coordinate.x);
             ImGui::InputFloat("Y Coordinate", &Coordinate.y);
@@ -158,7 +160,7 @@ void hack_start(const char *_game_data_dir) {
 
     // TODO: hooking/patching here
 	
-	DobbyHook(getAbsAddress(0x6d56f1c),(void *) new_cd,(void **)&old_cd);
+	DobbyHook(getAbsAddress(0x41E76C4),(void *, Vector3) SetPosition,(void **, Vector3)&oldSetPosition);
 	
 	
 	
