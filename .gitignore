@@ -12,3 +12,4 @@
 /out
 .externalNativeBuild
 .cxx
+push.sh

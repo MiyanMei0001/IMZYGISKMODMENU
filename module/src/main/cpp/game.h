@@ -3,6 +3,6 @@
 
 // TODO: change this
 #define TargetLibName "libil2cpp.so"
-#define GamePackageName "com.game.packagename"
+#define GamePackageName "com.gamermania.projectd"
 
 #endif //ZYGISK_IMGUI_MODMENU_GAME_H
