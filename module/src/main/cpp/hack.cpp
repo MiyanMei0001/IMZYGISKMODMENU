@@ -1,14 +1,12 @@
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
+#include <cstdint>
 #include <unistd.h>
 #include <dlfcn.h>
 #include <string>
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
-#include "../ByNameModding/Tools.h"
-#include "../ByNameModding/Il2Cpp.h"
-
 #include "hack.h"
 #include "log.h"
 #include "game.h"
@@ -35,36 +33,76 @@ void *getAbsAddress(uintptr_t offset) {
     return reinterpret_cast<void*>(base + offset);
 }
 
-bool teleport;
+bool unliJump = false;
+bool equipArmor = false;
+bool seeRogue = false;
+bool throughAll = false;
+bool colorChest = false;
+bool lootSearch = false;
+float skillSpd = 1.0f;
+bool teleportAll = false;
 
-struct Vector3 {
-    float x, y, z;
+struct Ambator3 {
+float x,y,z;
 };
 
-struct TeleportCoordinate {
-    float x, y, z;
-} Coordinate;
+int32_t (*oldSetJump)(void *instance);
+void (*oldSetStealth)(void *instance);
+bool (*oldSetThroughPlayer)(void *instance);
+bool (*oldSetThroughMonster)(void *instance);
+bool (*oldSetChest)(void *instance);
+float (*oldSetSkillSpd)(void *instance);
+bool (*oldSetSearch)(void *instance, uint64_t id);
+bool (*oldSetEquip)(void *instance, int32_t inventoryId, uint64_t uid, int32_t charId, int32_t classId);
+void (*oldSetPosition)(void *instance, Ambator3 position);
 
-void (*oldSetPosition)(void *instance, Vector3 position);
+int32_t SetJump(void *instance) {
+    if (instance && unliJump) return 9999;
+    return oldSetJump(instance);
+}
 
-void SetPosition(void *instance, Vector3 position) {
-    if (instance != nullptr && teleport) {
-        if (Coordinate.x == 0) {
-            Coordinate.x = position.x;
-        }
-        if (Coordinate.y == 0) {
-            Coordinate.y = position.y;
-        }
-        if (Coordinate.z == 0) {
-            Coordinate.z = position.z;
-        }
-        
-        Vector3 newPosition = {Coordinate.x, Coordinate.y, Coordinate.z};
+void SetStealth(void *instance) {
+    if (instance && seeRogue) return;
+    if (oldSetStealth) oldSetStealth(instance);
+}
+
+bool SetThroughPlayer(void *instance) {
+    if (instance && throughAll) return true;
+    return oldSetThroughPlayer(instance);
+}
+
+bool SetThroughMonster(void *instance) {
+    if (instance && throughAll) return true;
+    return oldSetThroughMonster(instance);
+}
+
+bool SetChest(void *instance) {
+    if (instance && colorChest) return true;
+    return oldSetChest(instance);
+}
+
+float SetSkillSpd(void *instance) {
+    if (instance && skillSpd > 1.0f) return oldSetSkillSpd(instance);
+    return oldSetSkillSpd(instance);
+}
+
+bool SetSearch(void *instance, uint64_t id) {
+    if (instance && lootSearch) return true;
+    return oldSetSearch(instance, id);
+}
+
+bool SetEquip(void *instance, int32_t inventoryId, uint64_t uid, int32_t charId, int32_t classId) {
+    if (instance && equipArmor) return true;
+    return oldSetEquip(instance, inventoryId, uid, charId, classId);
+}
+
+void SetPosition(void *instance, Ambator3 position) {
+    if (instance && teleportAll) {
+        Ambator3 newPosition = { position.x, 100.0f, position.z };
         return oldSetPosition(instance, newPosition);
     }
     return oldSetPosition(instance, position);
 }
-
 
 #include "input.h"
 #define HOOK(t,r,o) utils::hook(getAbsAddress(t),(func_t)r,(func_t*)&o)
@@ -129,19 +167,34 @@ EGLBoolean hook_eglSwapBuffers(EGLDisplay dpy, EGLSurface surface) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplAndroid_NewFrame(g_GlWidth, g_GlHeight);
     ImGui::NewFrame();
-if (ImGui::Begin("Ｍｉｙａｎ", nullptr)) {
-    if (ImGui::BeginTabBar("Ｍｉｙａｎ", ImGuiTabBarFlags_None)) {
-        if (ImGui::BeginTabItem("Teleport Menu")) {	
-            
-            ImGui::Checkbox("Teleport", &teleport);
+if (ImGui::Begin("Miyan | Gold & Glory", nullptr)) {
+    if (ImGui::BeginTabBar("Menu", ImGuiTabBarFlags_None)) {
 
-            ImGui::InputFloat("X Coordinate", &Coordinate.x);
-            ImGui::InputFloat("Y Coordinate", &Coordinate.y);
-            ImGui::InputFloat("Z Coordinate", &Coordinate.z);
-            
-            ImGui::EndTabItem(); 
+        if (ImGui::BeginTabItem("Player Menu")) {
+            ImGui::Checkbox("Unlimited Jump", &unliJump);
+            ImGui::Checkbox("Can Equip All Armor", &equipArmor);
+            ImGui::Checkbox("Can See Rogue Stealth", &seeRogue);
+            ImGui::Checkbox("Can Through Player/Monster", &throughAll);
+            ImGui::EndTabItem();
         }
-        ImGui::EndTabBar(); 
+
+        if (ImGui::BeginTabItem("Loot Menu")) {
+            ImGui::Checkbox("Can See Item Color In Chest", &colorChest);
+            ImGui::Checkbox("Can Skip Looting Search", &lootSearch);
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Skill Menu")) {
+            ImGui::SliderFloat("Attack & Skill Speed Multiplier", &skillSpd, 1.0f, 10.0f);
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Teleport Menu")) {
+            ImGui::Checkbox("Teleport All To Sky", &teleportAll);
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
     }
     ImGui::End();
 }
@@ -160,26 +213,16 @@ void hack_start(const char *_game_data_dir) {
     } while (g_TargetModule.size <= 0);
     LOGI("%s: %p - %p",TargetLibName, g_TargetModule.start_address, g_TargetModule.end_address);
 
-    // TODO: hooking/patching here
-        while (!g_il2cpp) {
-        g_il2cpp = Tools::GetBaseAddress("libil2cpp.so");
-        sleep(1);
-    }
-LOGI("libil2cpp.so: %p", g_il2cpp);
-
-    IL2Cpp::Il2CppAttach();
-    
-    sleep(5);  
      
-get_transform = (void *(*)(void *)) IL2Cpp::Il2CppGetMethodOffset("UnityEngine.dll", "UnityEngine", "Component", "get_transform", 0);
-get_position = (Vector3 (*)(void*)) IL2Cpp::Il2CppGetMethodOffset("UnityEngine.dll", "UnityEngine", "Transform", "get_position", 0);
-get_camera = (void *(*)()) IL2Cpp::Il2CppGetMethodOffset("UnityEngine.dll", "UnityEngine", "Camera", "get_main", 0);
-worldToScreen = (Vector3 (*)(void *, Vector3)) IL2Cpp::Il2CppGetMethodOffset("UnityEngine.dll", "UnityEngine", "Camera", "WorldToScreenPoint", 1);
-
-DobbyHook((uintptr_t)IL2Cpp::Il2CppGetMethodOffset("UnityEngine.dll", "UnityEngine", "Transform", "set_position", 1), (void *)SetPosition, (void **)&oldSetPosition);
-	
-	
-	
+DobbyHook(getAbsAddress(0x369ff40), (void *)SetJump, (void **)&oldSetJump);
+DobbyHook(getAbsAddress(0x369ba78), (void *)SetThroughPlayer, (void **)&oldSetThroughPlayer);
+DobbyHook(getAbsAddress(0x36af6e8), (void *)SetThroughMonster, (void **)&oldSetThroughMonster);
+DobbyHook(getAbsAddress(0x36b6150), (void *)SetSkillSpd, (void **)&oldSetSkillSpd);
+DobbyHook(getAbsAddress(0x36a889c), (void *)SetChest, (void **)&oldSetChest);
+DobbyHook(getAbsAddress(0x36af6e8), (void *)SetSearch, (void **)&oldSetSearch);
+DobbyHook(getAbsAddress(0x3b1fdec), (void *)SetStealth, (void **)&oldSetStealth);
+DobbyHook(getAbsAddress(0x42c0670), (void *)SetPosition, (void **)&oldSetPosition);
+		
 }
 
 void hack_prepare(const char *_game_data_dir) {
