@@ -161,8 +161,22 @@ void hack_start(const char *_game_data_dir) {
     LOGI("%s: %p - %p",TargetLibName, g_TargetModule.start_address, g_TargetModule.end_address);
 
     // TODO: hooking/patching here
-IL2Cpp::Il2CppAttach();	
-DobbyHook((uintptr_t)IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE(""), OBFUSCATE("UnityEngine"), OBFUSCATE("Transform") , OBFUSCATE("set_position"), 1), (void *)SetPosition, (void **)&oldSetPosition);
+        while (!g_il2cpp) {
+        g_il2cpp = Tools::GetBaseAddress("libil2cpp.so");
+        sleep(1);
+    }
+LOGI("libil2cpp.so: %p", g_il2cpp);
+
+    IL2Cpp::Il2CppAttach();
+    
+    sleep(5);  
+     
+    get_transform = (void *(*)(void *)) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Component"), OBFUSCATE("get_transform"), 0);
+    get_position = (Vector3 (*)(void*)) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Transform"), OBFUSCATE("get_position"), 0);
+    get_camera = (void *(*)()) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Camera"), OBFUSCATE("get_main"), 0);
+    worldToScreen = (Vector3 (*)(void *, Vector3)) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Camera"), OBFUSCATE("WorldToScreenPoint"), 1);
+	
+DobbyHook((uintptr_t)IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Transform") , OBFUSCATE("set_position"), 1), (void *)SetPosition, (void **)&oldSetPosition);
 	
 	
 	
