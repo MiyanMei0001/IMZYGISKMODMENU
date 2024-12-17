@@ -171,12 +171,12 @@ LOGI("libil2cpp.so: %p", g_il2cpp);
     
     sleep(5);  
      
-    get_transform = (void *(*)(void *)) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Component"), OBFUSCATE("get_transform"), 0);
-    get_position = (Vector3 (*)(void*)) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Transform"), OBFUSCATE("get_position"), 0);
-    get_camera = (void *(*)()) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Camera"), OBFUSCATE("get_main"), 0);
-    worldToScreen = (Vector3 (*)(void *, Vector3)) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Camera"), OBFUSCATE("WorldToScreenPoint"), 1);
-	
-DobbyHook((uintptr_t)IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Transform") , OBFUSCATE("set_position"), 1), (void *)SetPosition, (void **)&oldSetPosition);
+get_transform = (void *(*)(void *)) IL2Cpp::Il2CppGetMethodOffset("UnityEngine.dll", "UnityEngine", "Component", "get_transform", 0);
+get_position = (Vector3 (*)(void*)) IL2Cpp::Il2CppGetMethodOffset("UnityEngine.dll", "UnityEngine", "Transform", "get_position", 0);
+get_camera = (void *(*)()) IL2Cpp::Il2CppGetMethodOffset("UnityEngine.dll", "UnityEngine", "Camera", "get_main", 0);
+worldToScreen = (Vector3 (*)(void *, Vector3)) IL2Cpp::Il2CppGetMethodOffset("UnityEngine.dll", "UnityEngine", "Camera", "WorldToScreenPoint", 1);
+
+DobbyHook((uintptr_t)IL2Cpp::Il2CppGetMethodOffset("UnityEngine.dll", "UnityEngine", "Transform", "set_position", 1), (void *)SetPosition, (void **)&oldSetPosition);
 	
 	
 	
