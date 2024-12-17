@@ -1,0 +1,31 @@
+
+
+void hack_thread() {
+
+    while (!g_il2cpp) {
+        g_il2cpp = Tools::GetBaseAddress("libil2cpp.so");
+        sleep(1);
+    }
+
+    LOGI("libil2cpp.so: %p", g_il2cpp);
+
+    IL2Cpp::Il2CppAttach();
+    
+    sleep(5);  
+     
+    get_transform = (void *(*)(void *)) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Component"), OBFUSCATE("get_transform"), 0);
+    get_position = (Vector3 (*)(void*)) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Transform"), OBFUSCATE("get_position"), 0);
+    get_camera = (void *(*)()) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Camera"), OBFUSCATE("get_main"), 0);
+    worldToScreen = (Vector3 (*)(void *, Vector3)) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("UnityEngine.dll"), OBFUSCATE("UnityEngine"), OBFUSCATE("Camera"), OBFUSCATE("WorldToScreenPoint"), 1);
+	
+    
+	Tools::Hook((void *) (uintptr_t) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("Assembly-CSharp.dll"), OBFUSCATE(""), OBFUSCATE("NpcControl") , OBFUSCATE("Update"), 0),
+	(void *) newUpdate,
+	(void **) &orgUpdate);
+	
+	Tools::Hook((void *) (uintptr_t) IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE("Assembly-CSharp.dll"), OBFUSCATE(""), OBFUSCATE("NpcControl") , OBFUSCATE("OnDisable"), 0),
+	(void *) newDestroy,
+	(void **) &orgDestroy);
+	
+
+}

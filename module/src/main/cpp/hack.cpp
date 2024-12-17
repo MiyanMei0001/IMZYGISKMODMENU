@@ -6,6 +6,8 @@
 #include <string>
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
+#include "../ByNameModding/Tools.h"
+#include "../ByNameModding/Il2Cpp.h"
 
 #include "hack.h"
 #include "log.h"
@@ -159,8 +161,8 @@ void hack_start(const char *_game_data_dir) {
     LOGI("%s: %p - %p",TargetLibName, g_TargetModule.start_address, g_TargetModule.end_address);
 
     // TODO: hooking/patching here
-	
-DobbyHook(getAbsAddress(0x41E76C4), (void *)SetPosition, (void **)&oldSetPosition);
+IL2Cpp::Il2CppAttach();	
+DobbyHook((uintptr_t)IL2Cpp::Il2CppGetMethodOffset(OBFUSCATE(""), OBFUSCATE("UnityEngine"), OBFUSCATE("Transform") , OBFUSCATE("set_position"), 1), (void *)SetPosition, (void **)&oldSetPosition);
 	
 	
 	

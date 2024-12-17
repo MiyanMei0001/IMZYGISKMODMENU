@@ -58,7 +58,7 @@ set(IMGUI_SRC
 )
 file(GLOB KITTY_MEMORY_SRC ${PROJECT_SOURCE_DIR}/KittyMemory/*.cpp)
 
-add_library(${MODULE_NAME} SHARED main.cpp hack.cpp utils.cpp ${IMGUI_SRC} ${xdl-src} ${KITTY_MEMORY_SRC})
+add_library(${MODULE_NAME} SHARED ByNameModding/Il2Cpp.cpp ByNameModding/Tools.cpp main.cpp hack.cpp utils.cpp ${IMGUI_SRC} ${xdl-src} ${KITTY_MEMORY_SRC} )
 
 if(NOT TARGET dobby)
 set(DOBBY_DIR Dobby)
